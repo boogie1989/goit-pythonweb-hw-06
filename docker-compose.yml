@@ -1,27 +1,15 @@
-version: "3"
 services:
-  postgreshw06:
-    image: postgres:12-alpine
-    container_name: postgreshw06
+  db:
+    image: postgres:14
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 567234
-    restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
-      interval: 30s
-      timeout: 60s
-      retries: 5
-      start_period: 80s
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: hw6
     ports:
-      - '5432:5432'
-  apphw06:
-    build: .
-    command: /bin/sh -c 'alembic upgrade head && python seed.py && python my_select.py'
-    environment:
-      DB_HOST: postgreshw06
-    depends_on:
-      postgreshw06:
-        condition: service_healthy
-    links: 
-        - postgreshw06
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

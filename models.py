@@ -1,51 +1,49 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float
-from sqlalchemy.orm import relationship, DeclarativeBase
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Float
+from sqlalchemy.orm import relationship, declarative_base
 
 
-class Base(DeclarativeBase):
-    pass
-
-
-class Student(Base):
-    """Represents a student who belongs to a group and can have grades in subjects."""
-    __tablename__ = "students"
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-    group_id = Column(Integer, ForeignKey("groups.id"))
-    group = relationship("Group", back_populates="students")
+Base = declarative_base()
 
 
 class Group(Base):
-    """Represents a group of students."""
     __tablename__ = "groups"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String(50), nullable=False, unique=True)
     students = relationship("Student", back_populates="group")
 
 
+class Student(Base):
+    __tablename__ = "students"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False)
+    group_id = Column(Integer, ForeignKey("groups.id"))
+    group = relationship("Group", back_populates="students")
+    grades = relationship("Grade", back_populates="student")
+
+
 class Teacher(Base):
-    """Represents a teacher who can teach multiple subjects."""
     __tablename__ = "teachers"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String(100), nullable=False)
+    subjects = relationship("Subject", back_populates="teacher")
 
 
 class Subject(Base):
-    """Represents a subject taught by a teacher."""
     __tablename__ = "subjects"
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
+    name = Column(String(100), nullable=False)
     teacher_id = Column(Integer, ForeignKey("teachers.id"))
-    teacher = relationship("Teacher")
+    teacher = relationship("Teacher", back_populates="subjects")
+    grades = relationship("Grade", back_populates="subject")
 
 
 class Grade(Base):
-    """Represents a grade given to a student for a subject on a specific date."""
     __tablename__ = "grades"
     id = Column(Integer, primary_key=True)
     student_id = Column(Integer, ForeignKey("students.id"))
     subject_id = Column(Integer, ForeignKey("subjects.id"))
     grade = Column(Float, nullable=False)
-    date = Column(Date, nullable=False)
-    student = relationship("Student")
-    subject = relationship("Subject")
+    date_received = Column(DateTime, default=datetime.utcnow)
+    student = relationship("Student", back_populates="grades")
+    subject = relationship("Subject", back_populates="grades")
